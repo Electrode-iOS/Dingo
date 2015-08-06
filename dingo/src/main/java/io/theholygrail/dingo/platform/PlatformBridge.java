@@ -36,8 +36,7 @@ public class PlatformBridge {
     }
 
     public void nativeBridgeReady() {
-        // TODO: Fix this, since we don't control the NativeBridge object
-        mWebView.executeJavascript("window.nativeBridgeReady(null,null);");
+        mWebView.executeJavascript("if (window.nativeBridgeReady != null) {window.nativeBridgeReady(null,window.NativeBridge);}");
     }
 
     @SuppressWarnings("unused")
@@ -114,6 +113,7 @@ public class PlatformBridge {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
                                 Log.i(TAG, action.id + " button clicked!");
+                                sendToJs("", action.id);
                             }
                         });
                         showDialog = true;
@@ -131,7 +131,7 @@ public class PlatformBridge {
             private void sendToJs(String error, String id) {
                 Log.d(TAG, "error: " + error + " id: " + id);
                 if (callbackValue.isFunction()) {
-                    Object args[] = {error, id};
+                    Object args[] = {error, new JSValue(id)};
                     callbackValue.callFunction(mWebView, args, null);
                 }
             }

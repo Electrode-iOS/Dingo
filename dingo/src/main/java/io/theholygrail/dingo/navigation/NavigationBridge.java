@@ -4,6 +4,7 @@ import android.os.Handler;
 import android.util.Log;
 import android.webkit.JavascriptInterface;
 
+import io.theholygrail.jsbridge.JSValue;
 import io.theholygrail.jsbridge.JSWebView;
 
 /**
@@ -23,23 +24,24 @@ public class NavigationBridge {
         mCallback = navigationCallback;
     }
 
+
     @SuppressWarnings("unused")
     @JavascriptInterface
     public void animateForward() {
         Log.d(TAG, "animateForward()");
-        mHandler.post(new Runnable() {
-            @Override
-            public void run() {
-                mCallback.animateForward();
-            }
-        });
+        animateForward(null);
     }
 
     @SuppressWarnings("unused")
     @JavascriptInterface
-    public void animateForward(String tabBarHidden) {
-        Log.d(TAG, "animateForward(tabBarHidden)");
-        animateForward();
+    public void animateForward(final String options) {
+        Log.d(TAG, "animateForward(): " + options);
+        mHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                mCallback.animateForward(options);
+            }
+        });
     }
 
     @SuppressWarnings("unused")
@@ -69,11 +71,17 @@ public class NavigationBridge {
     @SuppressWarnings("unused")
     @JavascriptInterface
     public void presentModal() {
-        Log.d(TAG, "presentModal() called");
+        presentModal(null);
+    }
+
+    @SuppressWarnings("unused")
+    @JavascriptInterface
+    public void presentModal(final String options) {
+        Log.d(TAG, "presentModal(): " + options);
         mHandler.post(new Runnable() {
             @Override
             public void run() {
-                mCallback.presentModal();
+                mCallback.presentModal(options);
             }
         });
     }
@@ -89,4 +97,25 @@ public class NavigationBridge {
             }
         });
     }
+
+    @SuppressWarnings("unused")
+    @JavascriptInterface
+    public void setOnBack(final String callback) {
+        Log.d(TAG, "setOnBack()");
+        mHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                final JSValue callbackValue = new JSValue(callback);
+                mCallback.setOnBackListener(new NavigationBridgeCallback.OnBackListener() {
+
+                    @Override
+                    public void onBack() {
+                        Log.d(TAG, "onBack()");
+                        callbackValue.callFunction(mWebView, null, null);
+                    }
+                });
+            }
+        });
+    }
+
 }

@@ -5,7 +5,7 @@ import android.os.Handler;
 import android.util.Log;
 import android.webkit.JavascriptInterface;
 
-import io.theholygrail.dingo.JsValueUtil;
+import io.theholygrail.jsbridge.JsValueUtil;
 import io.theholygrail.dingo.JsonTransformer;
 import io.theholygrail.dingo.navigation.NavigationBridge;
 import io.theholygrail.jsbridge.JSValue;
