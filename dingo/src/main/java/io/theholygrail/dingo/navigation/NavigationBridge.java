@@ -9,6 +9,7 @@ import io.theholygrail.jsbridge.JSWebView;
 
 /**
  * Contains the Javascript accessible methods in the navigation namespace.
+ *
  */
 public class NavigationBridge {
     private static final String TAG = NavigationBridge.class.getSimpleName();
@@ -25,6 +26,9 @@ public class NavigationBridge {
     }
 
 
+    /**
+     * Trigger a native push navigation transition.
+     */
     @SuppressWarnings("unused")
     @JavascriptInterface
     public void animateForward() {
@@ -32,6 +36,11 @@ public class NavigationBridge {
         animateForward(null);
     }
 
+    /**
+     * Trigger a native push navigation transition.
+     *
+     * @param options json string that sets the title of the new view.
+     */
     @SuppressWarnings("unused")
     @JavascriptInterface
     public void animateForward(final String options) {
@@ -44,6 +53,10 @@ public class NavigationBridge {
         });
     }
 
+    /**
+     * Trigger a native pop navigation transition.
+     *
+     */
     @SuppressWarnings("unused")
     @JavascriptInterface
     public void animateBackward() {
@@ -56,6 +69,10 @@ public class NavigationBridge {
         });
     }
 
+    /**
+     * Pops the native navigation stack all the way back to the root view.
+     *
+     */
     @SuppressWarnings("unused")
     @JavascriptInterface
     public void popToRoot() {
@@ -68,12 +85,29 @@ public class NavigationBridge {
         });
     }
 
+    /**
+     * Trigger a native modal transition.
+     *
+     */
     @SuppressWarnings("unused")
     @JavascriptInterface
     public void presentModal() {
         presentModal(null);
     }
 
+    /**
+     * Trigger a native modal transition
+     *
+     * The optional options provided are:
+     * <ul>
+     * <li>title</li>
+     * <li>navigationBarButtons - Array of navigation bar buttons.</li>
+     * <li>onNavigationBarButtonTap - callback function when a navigation bar button is clicked.</li>
+     * <li>onAppear - callback function to be triggered once the animation is completed, and a new view is ready.</li>
+     * </ul>
+     *
+     * @param options
+     */
     @SuppressWarnings("unused")
     @JavascriptInterface
     public void presentModal(final String options) {
@@ -86,6 +120,10 @@ public class NavigationBridge {
         });
     }
 
+    /**
+     * Close the existing native modal view.
+     *
+     */
     @SuppressWarnings("unused")
     @JavascriptInterface
     public void dismissModal() {
@@ -98,6 +136,12 @@ public class NavigationBridge {
         });
     }
 
+    /**
+     * Set a function callback to call when the up action, or hardware back button is clicked.
+     * If back button is clicked and this callback is not set, the bridge will fallback to going back in the web history.
+     *
+     * @param callback function callback
+     */
     @SuppressWarnings("unused")
     @JavascriptInterface
     public void setOnBack(final String callback) {
@@ -117,5 +161,4 @@ public class NavigationBridge {
             }
         });
     }
-
 }

@@ -23,10 +23,10 @@ public class PlatformBridge {
     private static final String TAG = PlatformBridge.class.getSimpleName();
     public static final String NAMESPACE = "platform";
 
-    Context mContext;
-    JSWebView mWebView;
-    Handler mHandler;
-    JsonTransformer mJsonTransformer;
+    private Context mContext;
+    private JSWebView mWebView;
+    private Handler mHandler;
+    private JsonTransformer mJsonTransformer;
 
     public PlatformBridge(Context context, JSWebView webView, JsonTransformer transformer) {
         mContext = context;
@@ -35,10 +35,11 @@ public class PlatformBridge {
         mHandler = new Handler();
     }
 
-    public void nativeBridgeReady() {
-        mWebView.executeJavascript("if (window.nativeBridgeReady != null) {window.nativeBridgeReady(null,window.NativeBridge);}");
-    }
-
+    /**
+     * Provides information that identifies the device and platform.
+     *
+     * @param callback The object containing the device and platform info
+     */
     @SuppressWarnings("unused")
     @JavascriptInterface
     public void info(String callback) {
@@ -76,8 +77,6 @@ public class PlatformBridge {
     @SuppressWarnings("unused")
     @JavascriptInterface
     public void dialog(String param, String callback) {
-        Log.e(TAG, "dialog: " + param);
-        Log.e(TAG, "callback: " + callback);
 
         final DialogData dialogData = mJsonTransformer.fromJson(param, DialogData.class);
         final JSValue callbackValue = new JSValue(callback);
@@ -89,6 +88,7 @@ public class PlatformBridge {
                         .setTitle(dialogData.title)
                         .setMessage(dialogData.message);
                 boolean showDialog = false;
+                boolean positiveButtonSet = false;
                 for (final DialogData.Action action : dialogData.actions) {
                     if ("cancel".equalsIgnoreCase(action.id)) {
                         builder.setNegativeButton(action.label, new DialogInterface.OnClickListener() {
@@ -99,23 +99,22 @@ public class PlatformBridge {
                             }
                         });
                         showDialog = true;
-                    } else if ("ok".equalsIgnoreCase(action.id)) {
-                        builder.setPositiveButton(action.label, new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                Log.d(TAG, "positive button clicked!");
-                                sendToJs("", action.id);
-                            }
-                        });
-                        showDialog = true;
                     } else if (!TextUtils.isEmpty(action.id)) {
-                        builder.setNeutralButton(action.label, new DialogInterface.OnClickListener() {
+                        DialogInterface.OnClickListener clickListener = new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
                                 Log.i(TAG, action.id + " button clicked!");
                                 sendToJs("", action.id);
                             }
-                        });
+                        };
+
+                        if (positiveButtonSet) {
+                            builder.setPositiveButton(action.label, clickListener);
+                        } else {
+                            builder.setNeutralButton(action.label, clickListener);
+                            positiveButtonSet = true;
+                        }
+
                         showDialog = true;
                     }
                 }
@@ -139,14 +138,14 @@ public class PlatformBridge {
     }
 
     /**
-     * Simple sharing of a message, and an URL, using the platforms build in sharing mechanism.
-     * @param param
+     * Simple sharing of a message, and an URL, using the platforms built in sharing mechanism.
+     *
+     * @param options Object containing the message, and url to share.
      */
     @SuppressWarnings("unused")
     @JavascriptInterface
-    public void share(String param) {
-        // TODO: Add support for actionbar sharing?
-        ShareData shareData = mJsonTransformer.fromJson(param, ShareData.class);
+    public void share(String options) {
+        ShareData shareData = mJsonTransformer.fromJson(options, ShareData.class);
 
         final String message = shareData.message;
         String url = shareData.url;

@@ -24,10 +24,6 @@ public class NavigationBarBridge {
     JsonTransformer mTransformer;
     Context mContext;
 
-    public interface OnClickListener {
-        void onClick(String id);
-    }
-
     public NavigationBarBridge(JSWebView webView, JsonTransformer transformer, NavigationBarBridgeCallback callback) {
         mWebView = webView;
         mContext = mWebView.getContext();
@@ -58,14 +54,29 @@ public class NavigationBarBridge {
     }
 
     /**
-     * Shows a dialogSets the title for the current page.
-     * @param param The new title
+     * Set the navigation bar's buttons with an array of buttons.
+     *
+     * Example: <pre><code>
+     * var buttons = [{
+     *    title: "Cancel",
+     *    id: "cancel"
+     *  }, {
+     *    title: "Done",
+     *    id: "done"
+     *  }];
+     *
+     *  window.NativeBridge.navigationBar.setButtons(buttons, function (buttonID) {
+     *    // handle button tap
+     *  });
+     * </code></pre>
+     *
+     * @param param The buttons
+     * @param callback callback function when a button is clicked
      */
     @SuppressWarnings("unused")
     @JavascriptInterface
     public void setButtons(String param, String callback) {
         Log.d(TAG, "setButtons: " + param);
-        Log.d(TAG, "callback: " + callback);
 
         final Button[] buttons = mTransformer.fromJson(param, Button[].class);
         final JSValue callbackValue = new JSValue(callback);
@@ -74,9 +85,9 @@ public class NavigationBarBridge {
             @Override
             public void run() {
                 if (mCallback != null) {
-                    OnClickListener clickListener = null;
+                    NavigationBarBridgeCallback.OnClickListener clickListener = null;
                     if (buttons != null) {
-                        clickListener = new OnClickListener() {
+                        clickListener = new NavigationBarBridgeCallback.OnClickListener() {
 
                             @Override
                             public void onClick(String id) {

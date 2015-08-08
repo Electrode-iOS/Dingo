@@ -11,7 +11,6 @@ import android.webkit.WebView;
 import android.widget.ImageView;
 
 import io.theholygrail.jsbridge.JSWebView;
-import io.theholygrail.dingo.R;
 
 public class AnimationController {
     private static final String TAG = AnimationController.class.getSimpleName();
@@ -46,9 +45,9 @@ public class AnimationController {
         }
     }
 
-    public void animateBackward() {
+    public void animateBackward(AnimationListener listener) {
         mBackAnimation = new BackAnimation();
-        mBackAnimation.start();
+        mBackAnimation.start(listener);
     }
 
     public void animateUp() {
@@ -63,9 +62,9 @@ public class AnimationController {
         }
     }
 
-    public void animateDown() {
+    public void animateDown(AnimationListener listener) {
         mDownAnimation = new DownAnimation();
-        mDownAnimation.start();
+        mDownAnimation.start(listener);
     }
 
     private class ForwardAnimation {
@@ -81,8 +80,8 @@ public class AnimationController {
 
             if (screenshot != null) {
                 imageView.setImageBitmap(screenshot);
-                loadingView.setVisibility(View.VISIBLE);
                 mScreenShotContainer.setVisibility(View.VISIBLE);
+                loadingView.setVisibility(View.VISIBLE); // this is reset in onPageFinished()
 
                 final ObjectAnimator inAnimator = ObjectAnimator
                         .ofFloat(webViewContainer, View.TRANSLATION_X, webViewContainer.getWidth(), 0);
@@ -94,9 +93,7 @@ public class AnimationController {
                         super.onAnimationEnd(animation);
                         Log.d(TAG, "ForwardAnimation onAnimationEnd()");
 
-                        //loadingView.setVisibility(View.GONE);
-                        // reset screenshot view
-                        mScreenShotContainer.setVisibility(View.INVISIBLE);
+                        mScreenShotContainer.setVisibility(View.GONE);
                         mScreenShotContainer.setTranslationX(0);
                         imageView.setImageBitmap(null);
 
@@ -134,34 +131,51 @@ public class AnimationController {
     }
 
     private class BackAnimation {
-        public void start() {
+        public boolean start(final AnimationListener listener) {
             Log.d(TAG, "BackAnimation start()");
+            boolean started = false;
 
-            mScreenShotContainer.setVisibility(View.VISIBLE);
-            mScreenShotContainer.findViewById(R.id.screenshot_loading_view).setVisibility(View.VISIBLE);
-
-            final ObjectAnimator inAnimator = ObjectAnimator.ofFloat(mScreenShotContainer, View.TRANSLATION_X, -mScreenShotContainer.getWidth(), 0);
-            inAnimator.setDuration(ANIMATION_TIME);
-            inAnimator.start();
-
+            final ImageView imageView = (ImageView) mRootView.findViewById(R.id.screenshot_view);
+            final View loadingView = mRootView.findViewById(R.id.webview_loading_view);
             final View webViewContainer = mRootView.findViewById(R.id.webview_container);
-            webViewContainer.animate()
-                    .translationXBy(mWebView.getWidth()).setDuration(ANIMATION_TIME)
-                    .setListener(new AnimatorListenerAdapter() {
-                        @Override
-                        public void onAnimationEnd(Animator animation) {
-                            super.onAnimationEnd(animation);
-                            Log.d(TAG, "BackAnimation end()");
+            Bitmap screenshot = screenshot(mWebView);
 
-                            webViewContainer.setTranslationX(0);
-                            //mWebView.goBack();
+            if (screenshot != null) {
+                imageView.setImageBitmap(screenshot);
+                mScreenShotContainer.setVisibility(View.VISIBLE);
+                loadingView.setVisibility(View.VISIBLE); // this is reset in onPageFinished()
 
-                            mScreenShotContainer.setVisibility(View.GONE);
-                            mScreenShotContainer.findViewById(R.id.screenshot_loading_view).setVisibility(View.GONE);
+                final ObjectAnimator inAnimator = ObjectAnimator
+                        .ofFloat(webViewContainer, View.TRANSLATION_X, -webViewContainer.getWidth(), 0);
 
-                            mBackAnimation = null;
+                inAnimator.setDuration(ANIMATION_TIME);
+                inAnimator.addListener(new AnimatorListenerAdapter() {
+                    @Override
+                    public void onAnimationEnd(Animator animation) {
+                        super.onAnimationEnd(animation);
+                        Log.d(TAG, "BackAnimation onAnimationEnd()");
+
+                        mScreenShotContainer.setVisibility(View.GONE);
+                        mScreenShotContainer.setTranslationX(0);
+                        imageView.setImageBitmap(null);
+
+                        mBackAnimation = null;
+                        if (listener != null) {
+                            listener.onAnimationEnd();
                         }
-                    }).start();
+                    }
+                });
+                inAnimator.start();
+
+                mScreenShotContainer.animate()
+                        .translationXBy(webViewContainer.getWidth())
+                        .setDuration(ANIMATION_TIME)
+                        .start();
+
+                started = true;
+            }
+
+            return started;
         }
     }
 
@@ -202,6 +216,7 @@ public class AnimationController {
                         mUpAnimation = null;
                     }
                 });
+
                 inAnimator.start();
 
                 mScreenShotContainer.animate()
@@ -217,7 +232,7 @@ public class AnimationController {
     }
 
     private class DownAnimation {
-        public void start() {
+        public void start(final AnimationListener listener) {
             Log.d(TAG, "DownAnimation start()");
 
             mScreenShotContainer.setVisibility(View.VISIBLE);
@@ -242,8 +257,16 @@ public class AnimationController {
                             mScreenShotContainer.findViewById(R.id.screenshot_loading_view).setVisibility(View.GONE);
 
                             mDownAnimation = null;
+                            if (listener != null) {
+                                listener.onAnimationEnd();
+                            }
                         }
-                    }).start();
+                    })
+                    .start();
         }
+    }
+
+    public interface AnimationListener {
+        void onAnimationEnd();
     }
 }

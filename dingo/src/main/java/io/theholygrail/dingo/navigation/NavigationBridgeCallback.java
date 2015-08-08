@@ -8,7 +8,7 @@ public interface NavigationBridgeCallback {
     void dismissModal();
     void setOnBackListener(OnBackListener backListener);
 
-    public interface OnBackListener {
+    interface OnBackListener {
         void onBack();
     }
 }
