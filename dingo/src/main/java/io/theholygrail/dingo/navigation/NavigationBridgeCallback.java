@@ -4,9 +4,10 @@ public interface NavigationBridgeCallback {
     void animateForward(String options);
     void animateBackwards();
     void popToRoot();
-    void presentModal(String options);
+    void presentModal(NavigationOptions navigationOptions);
     void dismissModal();
     void setOnBackListener(OnBackListener backListener);
+    void presentExternalUrl(ExternalUrlOptions urlOptions);
 
     interface OnBackListener {
         void onBack();

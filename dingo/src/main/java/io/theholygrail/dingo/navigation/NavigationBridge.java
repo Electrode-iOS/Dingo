@@ -4,6 +4,7 @@ import android.os.Handler;
 import android.util.Log;
 import android.webkit.JavascriptInterface;
 
+import io.theholygrail.dingo.JsonTransformer;
 import io.theholygrail.jsbridge.JSValue;
 import io.theholygrail.jsbridge.JSWebView;
 
@@ -18,13 +19,14 @@ public class NavigationBridge {
     JSWebView mWebView;
     Handler mHandler;
     NavigationBridgeCallback mCallback;
+    JsonTransformer mJsonTransformer;
 
-    public NavigationBridge(JSWebView webView, NavigationBridgeCallback navigationCallback) {
+    public NavigationBridge(JSWebView webView, JsonTransformer jsonTransformer, NavigationBridgeCallback navigationCallback) {
         mWebView = webView;
+        mJsonTransformer = jsonTransformer;
         mHandler = new Handler();
         mCallback = navigationCallback;
     }
-
 
     /**
      * Trigger a native push navigation transition.
@@ -112,10 +114,13 @@ public class NavigationBridge {
     @JavascriptInterface
     public void presentModal(final String options) {
         Log.d(TAG, "presentModal(): " + options);
+
+        final NavigationOptions navigationOptions = mJsonTransformer.fromJson(options, NavigationOptions.class);
+
         mHandler.post(new Runnable() {
             @Override
             public void run() {
-                mCallback.presentModal(options);
+                mCallback.presentModal(navigationOptions);
             }
         });
     }
@@ -145,7 +150,7 @@ public class NavigationBridge {
     @SuppressWarnings("unused")
     @JavascriptInterface
     public void setOnBack(final String callback) {
-        Log.d(TAG, "setOnBack()");
+        Log.d(TAG, "setOnBack(): " + callback);
         mHandler.post(new Runnable() {
             @Override
             public void run() {
@@ -158,6 +163,34 @@ public class NavigationBridge {
                         callbackValue.callFunction(mWebView, null, null);
                     }
                 });
+            }
+        });
+    }
+
+    /**
+     * Trigger a native modal transition
+     *
+     * The optional options provided are:
+     * <ul>
+     * <li>url - External URL to load into the new modal web view.</li>
+     * <li>returnURL - Array of navigation bar buttons.</li>
+     * <li>onNavigationBarButtonTap - callback function when a navigation bar button is clicked.</li>
+     * <li>onAppear - callback function to be triggered once the animation is completed, and a new view is ready.</li>
+     * </ul>
+     *
+     * @param options
+     */
+    @SuppressWarnings("unused")
+    @JavascriptInterface
+    public void presentExternalURL(final String options) {
+        Log.d(TAG, "presentExternalURL(): " + options);
+
+        final ExternalUrlOptions urlOptions = mJsonTransformer.fromJson(options, ExternalUrlOptions.class);
+
+        mHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                mCallback.presentExternalUrl(urlOptions);
             }
         });
     }

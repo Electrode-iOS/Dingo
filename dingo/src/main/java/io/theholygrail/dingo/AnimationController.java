@@ -50,10 +50,10 @@ public class AnimationController {
         mBackAnimation.start(listener);
     }
 
-    public void animateUp() {
+    public void animateUp(AnimationListener listener) {
         if (mUpAnimation == null) {
             mUpAnimation = new UpAnimation();
-            if (!mUpAnimation.start()) {
+            if (!mUpAnimation.start(listener)) {
                 Log.w(TAG, "Failed to start up animation.");
                 mUpAnimation = null;
             }
@@ -181,7 +181,7 @@ public class AnimationController {
 
     private class UpAnimation {
 
-        public boolean start() {
+        public boolean start(final AnimationListener listener) {
             Log.d(TAG, "UpAnimation start()");
             boolean started = false;
 
@@ -205,15 +205,15 @@ public class AnimationController {
                         super.onAnimationEnd(animation);
                         Log.d(TAG, "UpAnimation onAnimationEnd()");
 
-                        // TODO: Clarify?
-                        loadingView.setVisibility(View.GONE);
-
                         // reset screenshot view
                         mScreenShotContainer.setVisibility(View.INVISIBLE);
                         mScreenShotContainer.setTranslationY(0);
                         imageView.setImageBitmap(null);
 
                         mUpAnimation = null;
+                        if (listener != null) {
+                            listener.onAnimationEnd();
+                        }
                     }
                 });
 
