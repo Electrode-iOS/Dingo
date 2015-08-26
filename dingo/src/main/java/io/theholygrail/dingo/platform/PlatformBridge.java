@@ -9,7 +9,14 @@ import android.os.Build;
 import android.os.Handler;
 import android.text.TextUtils;
 import android.util.Log;
+import android.view.Gravity;
+import android.view.View;
 import android.webkit.JavascriptInterface;
+import android.widget.Button;
+import android.widget.LinearLayout;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import io.theholygrail.dingo.JsonTransformer;
 import io.theholygrail.jsbridge.JSValue;
@@ -120,7 +127,9 @@ public class PlatformBridge {
                 }
 
                 if (showDialog) {
-                    builder.show();
+                    AlertDialog dialog = builder.create();
+                    stackButtonsIfNeeded(dialog); // Lollipop layout bug workaround
+                    dialog.show();
                 } else {
                     sendToJs("Could not create dialog", "");
                     Log.w(TAG, "Could not create Dialog!");
@@ -130,7 +139,7 @@ public class PlatformBridge {
             private void sendToJs(String error, String id) {
                 Log.d(TAG, "error: " + error + " id: " + id);
                 if (callbackValue.isFunction()) {
-                    Object args[] = {error, new JSValue(id)};
+                    Object args[] = { error, new JSValue(id) };
                     callbackValue.callFunction(mWebView, args, null);
                 }
             }
@@ -161,5 +170,66 @@ public class PlatformBridge {
                 mContext.startActivity(Intent.createChooser(share, message));
             }
         });
+    }
+
+    /**
+     * Workaround/hack to handle the platform bug on API 21 and 22 where buttons in an AlertDialog are not stacked when
+     * they are too wide to fit horizontally (and are rendered outside of the screen). The workaround is to find the
+     * parent (layout) of the buttons, check if the total width of the buttons including padding is too wide to fit in
+     * the layout, and if so switch to a vertical layout and aligning to the right.
+     *
+     * @param dialog
+     *          The dialog to modify if it is deemed necessary
+     */
+    private void stackButtonsIfNeeded(final AlertDialog dialog) {
+        int platform = Build.VERSION.SDK_INT;
+        if (platform == Build.VERSION_CODES.LOLLIPOP || platform == Build.VERSION_CODES.LOLLIPOP_MR1) {
+            // Not until the dialog is displayed can we get the real view dimensions
+            dialog.setOnShowListener(new DialogInterface.OnShowListener() {
+                @Override
+                public void onShow(DialogInterface dialogInterface) {
+                    try {
+                        // Get the buttons
+                        Button button1 = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
+                        Button button2 = dialog.getButton(AlertDialog.BUTTON_NEGATIVE);
+                        Button button3 = dialog.getButton(AlertDialog.BUTTON_NEUTRAL);
+                        int contentWidth = button1.getWidth() + button2.getWidth() + button3.getWidth();
+
+                        // Get the layout holding the buttons
+                        LinearLayout layout = (LinearLayout) button1.getParent();
+                        int padding = layout.getPaddingLeft() + layout.getPaddingRight();
+                        int orientation = layout.getOrientation();
+
+                        // If orientation is horizontal and content is too wide, rework the layout
+                        if (orientation == LinearLayout.HORIZONTAL && contentWidth + padding > layout.getWidth()) {
+                            layout.setOrientation(LinearLayout.VERTICAL);
+                            layout.setGravity(Gravity.RIGHT);
+                            reverseChildOrder(layout);
+                        }
+                    } catch (Exception e) {
+                        // If something went wrong there's nothing we can do, so ignore
+                    }
+                }
+            });
+        }
+    }
+
+    /**
+     * Reverses the order of the children in a LinearLayout
+     *
+     * @param layout
+     *          The layout to reverse the order of
+     */
+    private void reverseChildOrder(LinearLayout layout) {
+        if (layout != null) {
+            List<View> buttons = new ArrayList<>();
+            for (int k = layout.getChildCount() - 1; k >= 0; k--) {
+                buttons.add(layout.getChildAt(k));
+            }
+            layout.removeAllViews();
+            for (View button : buttons) {
+                layout.addView(button);
+            }
+        }
     }
 }
