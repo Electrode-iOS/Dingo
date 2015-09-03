@@ -30,6 +30,8 @@ public class PlatformBridge {
     private static final String TAG = PlatformBridge.class.getSimpleName();
     public static final String NAMESPACE = "platform";
 
+    private static final String CANCELLED_ACTION_ID = "back";
+
     private Context mContext;
     private JSWebView mWebView;
     private Handler mHandler;
@@ -84,6 +86,7 @@ public class PlatformBridge {
     @SuppressWarnings("unused")
     @JavascriptInterface
     public void dialog(String param, String callback) {
+        Log.d(TAG, "dialog: " + param);
 
         final DialogData dialogData = mJsonTransformer.fromJson(param, DialogData.class);
         final JSValue callbackValue = new JSValue(callback);
@@ -129,6 +132,15 @@ public class PlatformBridge {
                 if (showDialog) {
                     AlertDialog dialog = builder.create();
                     stackButtonsIfNeeded(dialog); // Lollipop layout bug workaround
+                    dialog.setCanceledOnTouchOutside(false);
+                    dialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
+                        @Override
+                        public void onCancel(DialogInterface dialog) {
+                            Log.d(TAG, "onCancel()");
+                            sendToJs("", CANCELLED_ACTION_ID);
+                        }
+                    });
+
                     dialog.show();
                 } else {
                     sendToJs("Could not create dialog", "");
