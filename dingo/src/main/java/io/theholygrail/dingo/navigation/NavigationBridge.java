@@ -1,10 +1,10 @@
 package io.theholygrail.dingo.navigation;
 
 import android.os.Handler;
-import android.util.Log;
 import android.webkit.JavascriptInterface;
 
 import io.theholygrail.dingo.JsonTransformer;
+import io.theholygrail.jsbridge.JSLog;
 import io.theholygrail.jsbridge.JSValue;
 import io.theholygrail.jsbridge.JSWebView;
 
@@ -34,7 +34,7 @@ public class NavigationBridge {
     @SuppressWarnings("unused")
     @JavascriptInterface
     public void animateForward() {
-        Log.d(TAG, "animateForward()");
+        JSLog.d(TAG, "animateForward()");
         animateForward(null);
     }
 
@@ -46,7 +46,7 @@ public class NavigationBridge {
     @SuppressWarnings("unused")
     @JavascriptInterface
     public void animateForward(final String options) {
-        Log.d(TAG, "animateForward(): " + options);
+        JSLog.d(TAG, "animateForward(): " + options);
         mHandler.post(new Runnable() {
             @Override
             public void run() {
@@ -62,7 +62,7 @@ public class NavigationBridge {
     @SuppressWarnings("unused")
     @JavascriptInterface
     public void animateBackward() {
-        Log.d(TAG, "animateBackward()");
+        JSLog.d(TAG, "animateBackward()");
         mHandler.post(new Runnable() {
             @Override
             public void run() {
@@ -78,7 +78,7 @@ public class NavigationBridge {
     @SuppressWarnings("unused")
     @JavascriptInterface
     public void popToRoot() {
-        Log.d(TAG, "popToRoot()");
+        JSLog.d(TAG, "popToRoot()");
         mHandler.post(new Runnable() {
             @Override
             public void run() {
@@ -113,7 +113,7 @@ public class NavigationBridge {
     @SuppressWarnings("unused")
     @JavascriptInterface
     public void presentModal(final String options) {
-        Log.d(TAG, "presentModal(): " + options);
+        JSLog.d(TAG, "presentModal(): " + options);
 
         final NavigationOptions navigationOptions = mJsonTransformer.fromJson(options, NavigationOptions.class);
 
@@ -132,7 +132,7 @@ public class NavigationBridge {
     @SuppressWarnings("unused")
     @JavascriptInterface
     public void dismissModal() {
-        Log.d(TAG, "dismissModal() called");
+        JSLog.d(TAG, "dismissModal() called");
         mHandler.post(new Runnable() {
             @Override
             public void run() {
@@ -150,7 +150,7 @@ public class NavigationBridge {
     @SuppressWarnings("unused")
     @JavascriptInterface
     public void setOnBack(final String callback) {
-        Log.d(TAG, "setOnBack(): " + callback);
+        JSLog.d(TAG, "setOnBack(): " + callback);
         mHandler.post(new Runnable() {
             @Override
             public void run() {
@@ -159,7 +159,7 @@ public class NavigationBridge {
 
                     @Override
                     public void onBack() {
-                        Log.d(TAG, "onBack()");
+                        JSLog.d(TAG, "onBack()");
                         callbackValue.callFunction(mWebView, null, null);
                     }
                 });
@@ -183,7 +183,7 @@ public class NavigationBridge {
     @SuppressWarnings("unused")
     @JavascriptInterface
     public void presentExternalURL(final String options) {
-        Log.d(TAG, "presentExternalURL(): " + options);
+        JSLog.d(TAG, "presentExternalURL(): " + options);
 
         final ExternalUrlOptions urlOptions = mJsonTransformer.fromJson(options, ExternalUrlOptions.class);
 

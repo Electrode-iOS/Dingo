@@ -2,9 +2,9 @@ package io.theholygrail.dingo.navigationbar;
 
 import android.content.Context;
 import android.os.Handler;
-import android.util.Log;
 import android.webkit.JavascriptInterface;
 
+import io.theholygrail.jsbridge.JSLog;
 import io.theholygrail.jsbridge.JsValueUtil;
 import io.theholygrail.dingo.JsonTransformer;
 import io.theholygrail.dingo.navigation.NavigationBridge;
@@ -41,7 +41,7 @@ public class NavigationBarBridge {
     @SuppressWarnings("unused")
     @JavascriptInterface
     public void setTitle(String title) {
-        Log.d(TAG, "setTitle(" + title + ")");
+        JSLog.d(TAG, "setTitle(" + title + ")");
 
         final String titleText = JsValueUtil.parseQuotes(title);
 
@@ -76,7 +76,7 @@ public class NavigationBarBridge {
     @SuppressWarnings("unused")
     @JavascriptInterface
     public void setButtons(String param, String callback) {
-        Log.d(TAG, "setButtons: " + param);
+        JSLog.d(TAG, "setButtons: " + param);
 
         final Button[] buttons = mTransformer.fromJson(param, Button[].class);
         final JSValue callbackValue = new JSValue(callback);
