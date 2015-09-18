@@ -1,9 +1,9 @@
 package io.theholygrail.dingo.view;
 
 import android.os.Handler;
-import android.util.Log;
 import android.webkit.JavascriptInterface;
 
+import io.theholygrail.jsbridge.JSLog;
 import io.theholygrail.jsbridge.JSValue;
 import io.theholygrail.jsbridge.JSWebView;
 
@@ -31,7 +31,7 @@ public class ViewBridge {
     @SuppressWarnings("unused")
     @JavascriptInterface
     public void show() {
-        Log.d(TAG, "show()");
+        JSLog.d(TAG, "show()");
 
         mHandler.post(new Runnable() {
             @Override
@@ -50,14 +50,14 @@ public class ViewBridge {
     @SuppressWarnings("unused")
     @JavascriptInterface
     public void setOnAppear(String callback) {
-        Log.d(TAG, "setOnAppear(): " + callback);
+        JSLog.d(TAG, "setOnAppear(): " + callback);
 
         final JSValue callbackValue = new JSValue(callback);
 
         mCallback.setOnAppear(new ViewBridgeCallback.OnAppearListener() {
             @Override
             public void onAppear() {
-                Log.d(TAG, "onAppear");
+                JSLog.d(TAG, "onAppear");
                 callbackValue.callFunction(mWebView, null, null);
             }
         });
@@ -71,14 +71,14 @@ public class ViewBridge {
     @SuppressWarnings("unused")
     @JavascriptInterface
     public void setOnDisappear(String callback) {
-        Log.d(TAG, "setOnDisappear(): " + callback);
+        JSLog.d(TAG, "setOnDisappear(): " + callback);
 
         final JSValue callbackValue = new JSValue(callback);
 
         mCallback.setOnDisappear(new ViewBridgeCallback.OnDisappearListener() {
             @Override
             public void onDisappear() {
-                Log.d(TAG, "onDisappear()");
+                JSLog.d(TAG, "onDisappear()");
                 callbackValue.callFunction(mWebView, null, null);
             }
         });
