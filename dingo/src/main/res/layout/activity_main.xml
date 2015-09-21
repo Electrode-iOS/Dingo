@@ -10,20 +10,16 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-        <io.theholygrail.jsbridge.JSWebView
-            android:id="@+id/webview"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent" />
-
-
         <include
             android:id="@+id/loading_view"
             layout="@layout/loading_view"
             android:visibility="gone"/>
 
-        <include
+        <FrameLayout
             android:id="@+id/webview_loading_view"
-            layout="@layout/loading_view"/>
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@android:color/white"/>
 
     </FrameLayout>
 

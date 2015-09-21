@@ -27,9 +27,9 @@ public class AnimationController {
 
     private WebView mWebView;
 
-    public void init(View rootView) {
+    public void init(View rootView, JSWebView webView) {
         mRootView = rootView;
-        mWebView = (JSWebView) mRootView.findViewById(R.id.webview);
+        mWebView = webView;
         mScreenShotContainer = mRootView.findViewById(R.id.screenshot_container);
     }
 
