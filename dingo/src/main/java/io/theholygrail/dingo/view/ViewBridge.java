@@ -1,6 +1,7 @@
 package io.theholygrail.dingo.view;
 
 import android.os.Handler;
+import android.text.TextUtils;
 import android.webkit.JavascriptInterface;
 
 import io.theholygrail.jsbridge.JSLog;
@@ -51,16 +52,21 @@ public class ViewBridge {
     @JavascriptInterface
     public void setOnAppear(String callback) {
         JSLog.d(TAG, "setOnAppear(): " + callback);
+        ViewBridgeCallback.OnAppearListener listener = null;
 
-        final JSValue callbackValue = new JSValue(callback);
+        if (!TextUtils.isEmpty(callback)) {
+            final JSValue callbackValue = new JSValue(callback);
 
-        mCallback.setOnAppear(new ViewBridgeCallback.OnAppearListener() {
-            @Override
-            public void onAppear() {
-                JSLog.d(TAG, "onAppear");
-                callbackValue.callFunction(mWebView, null, null);
-            }
-        });
+            listener = new ViewBridgeCallback.OnAppearListener() {
+                @Override
+                public void onAppear() {
+                    JSLog.d(TAG, "onAppear");
+                    callbackValue.callFunction(mWebView, null, null);
+                }
+            };
+        }
+
+        mCallback.setOnAppear(listener);
     }
 
     /**
@@ -72,15 +78,19 @@ public class ViewBridge {
     @JavascriptInterface
     public void setOnDisappear(String callback) {
         JSLog.d(TAG, "setOnDisappear(): " + callback);
+        ViewBridgeCallback.OnDisappearListener listener = null;
 
-        final JSValue callbackValue = new JSValue(callback);
+        if (!TextUtils.isEmpty(callback)) {
+            final JSValue callbackValue = new JSValue(callback);
 
-        mCallback.setOnDisappear(new ViewBridgeCallback.OnDisappearListener() {
-            @Override
-            public void onDisappear() {
-                JSLog.d(TAG, "onDisappear()");
-                callbackValue.callFunction(mWebView, null, null);
-            }
-        });
+            listener = new ViewBridgeCallback.OnDisappearListener() {
+                @Override
+                public void onDisappear() {
+                    JSLog.d(TAG, "onDisappear()");
+                    callbackValue.callFunction(mWebView, null, null);
+                }
+            };
+        }
+        mCallback.setOnDisappear(listener);
     }
 }
