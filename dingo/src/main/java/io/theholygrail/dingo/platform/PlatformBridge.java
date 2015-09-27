@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Handler;
+import android.support.annotation.NonNull;
 import android.text.TextUtils;
 import android.view.Gravity;
 import android.view.View;
@@ -36,11 +37,13 @@ public class PlatformBridge {
     private JSWebView mWebView;
     private Handler mHandler;
     private JsonTransformer mJsonTransformer;
+    private PlatformBridgeCallback mCallback;
 
-    public PlatformBridge(Context context, JSWebView webView, JsonTransformer transformer) {
+    public PlatformBridge(Context context, JSWebView webView, JsonTransformer transformer, @NonNull PlatformBridgeCallback callback) {
         mContext = context;
         mWebView = webView;
         mJsonTransformer = transformer;
+        mCallback = callback;
         mHandler = new Handler();
     }
 
@@ -130,7 +133,7 @@ public class PlatformBridge {
                 }
 
                 if (showDialog) {
-                    AlertDialog dialog = builder.create();
+                    final AlertDialog dialog = builder.create();
                     stackButtonsIfNeeded(dialog); // Lollipop layout bug workaround
                     dialog.setCanceledOnTouchOutside(false);
                     dialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
@@ -140,8 +143,15 @@ public class PlatformBridge {
                             sendToJs("", CANCELLED_ACTION_ID);
                         }
                     });
+                    dialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
+                        @Override
+                        public void onDismiss(DialogInterface d) {
+                            JSLog.d(TAG, "onDismiss()");
+                            mCallback.onDialogDismissed(dialog);
+                        }
+                    });
 
-                    dialog.show();
+                    mCallback.showDialog(dialog);
                 } else {
                     sendToJs("Could not create dialog", "");
                     JSLog.w(TAG, "Could not create Dialog!");
