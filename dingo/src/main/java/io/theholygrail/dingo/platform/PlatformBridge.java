@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Handler;
+import android.support.annotation.NonNull;
 import android.text.TextUtils;
 import android.view.Gravity;
 import android.view.View;
@@ -38,7 +39,7 @@ public class PlatformBridge {
     private JsonTransformer mJsonTransformer;
     private PlatformBridgeCallback mCallback;
 
-    public PlatformBridge(Context context, JSWebView webView, JsonTransformer transformer, PlatformBridgeCallback callback) {
+    public PlatformBridge(Context context, JSWebView webView, JsonTransformer transformer, @NonNull PlatformBridgeCallback callback) {
         mContext = context;
         mWebView = webView;
         mJsonTransformer = transformer;
