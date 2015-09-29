@@ -5,11 +5,11 @@ import android.animation.AnimatorListenerAdapter;
 import android.animation.ObjectAnimator;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
-import android.util.Log;
 import android.view.View;
 import android.webkit.WebView;
 import android.widget.ImageView;
 
+import io.theholygrail.jsbridge.JSLog;
 import io.theholygrail.jsbridge.JSWebView;
 
 public class AnimationController {
@@ -27,9 +27,9 @@ public class AnimationController {
 
     private WebView mWebView;
 
-    public void init(View rootView) {
+    public void init(View rootView, JSWebView webView) {
         mRootView = rootView;
-        mWebView = (JSWebView) mRootView.findViewById(R.id.webview);
+        mWebView = webView;
         mScreenShotContainer = mRootView.findViewById(R.id.screenshot_container);
     }
 
@@ -37,11 +37,11 @@ public class AnimationController {
         if (mForwardAnimation == null) {
             mForwardAnimation = new ForwardAnimation();
             if (!mForwardAnimation.start()) {
-                Log.w(TAG, "Failed to start forward animation.");
+                JSLog.w(TAG, "Failed to start forward animation.");
                 mForwardAnimation = null;
             }
         } else {
-            Log.i(TAG, "Calling animateForward while animating");
+            JSLog.i(TAG, "Calling animateForward while animating");
         }
     }
 
@@ -54,11 +54,11 @@ public class AnimationController {
         if (mUpAnimation == null) {
             mUpAnimation = new UpAnimation();
             if (!mUpAnimation.start(listener)) {
-                Log.w(TAG, "Failed to start up animation.");
+                JSLog.w(TAG, "Failed to start up animation.");
                 mUpAnimation = null;
             }
         } else {
-            Log.i(TAG, "Calling animateUp while animating");
+            JSLog.i(TAG, "Calling animateUp while animating");
         }
     }
 
@@ -70,7 +70,7 @@ public class AnimationController {
     private class ForwardAnimation {
 
         public boolean start() {
-            Log.d(TAG, "ForwardAnimation start()");
+            JSLog.d(TAG, "ForwardAnimation start()");
             boolean started = false;
 
             final ImageView imageView = (ImageView) mRootView.findViewById(R.id.screenshot_view);
@@ -91,7 +91,7 @@ public class AnimationController {
                     @Override
                     public void onAnimationEnd(Animator animation) {
                         super.onAnimationEnd(animation);
-                        Log.d(TAG, "ForwardAnimation onAnimationEnd()");
+                        JSLog.d(TAG, "ForwardAnimation onAnimationEnd()");
 
                         mScreenShotContainer.setVisibility(View.GONE);
                         mScreenShotContainer.setTranslationX(0);
@@ -124,7 +124,7 @@ public class AnimationController {
             webView.draw(c);
         } catch (OutOfMemoryError e) {
             bmp = null;
-            Log.e(TAG, "Out of memory while creating screenshot", e);
+            JSLog.e(TAG, "Out of memory while creating screenshot", e);
         }
 
         return bmp;
@@ -132,7 +132,7 @@ public class AnimationController {
 
     private class BackAnimation {
         public boolean start(final AnimationListener listener) {
-            Log.d(TAG, "BackAnimation start()");
+            JSLog.d(TAG, "BackAnimation start()");
             boolean started = false;
 
             final ImageView imageView = (ImageView) mRootView.findViewById(R.id.screenshot_view);
@@ -153,7 +153,7 @@ public class AnimationController {
                     @Override
                     public void onAnimationEnd(Animator animation) {
                         super.onAnimationEnd(animation);
-                        Log.d(TAG, "BackAnimation onAnimationEnd()");
+                        JSLog.d(TAG, "BackAnimation onAnimationEnd()");
 
                         mScreenShotContainer.setVisibility(View.GONE);
                         mScreenShotContainer.setTranslationX(0);
@@ -182,7 +182,7 @@ public class AnimationController {
     private class UpAnimation {
 
         public boolean start(final AnimationListener listener) {
-            Log.d(TAG, "UpAnimation start()");
+            JSLog.d(TAG, "UpAnimation start()");
             boolean started = false;
 
             final ImageView imageView = (ImageView) mRootView.findViewById(R.id.screenshot_view);
@@ -203,7 +203,7 @@ public class AnimationController {
                     @Override
                     public void onAnimationEnd(Animator animation) {
                         super.onAnimationEnd(animation);
-                        Log.d(TAG, "UpAnimation onAnimationEnd()");
+                        JSLog.d(TAG, "UpAnimation onAnimationEnd()");
 
                         // reset screenshot view
                         mScreenShotContainer.setVisibility(View.INVISIBLE);
@@ -233,7 +233,7 @@ public class AnimationController {
 
     private class DownAnimation {
         public void start(final AnimationListener listener) {
-            Log.d(TAG, "DownAnimation start()");
+            JSLog.d(TAG, "DownAnimation start()");
 
             mScreenShotContainer.setVisibility(View.VISIBLE);
             mScreenShotContainer.findViewById(R.id.screenshot_loading_view).setVisibility(View.VISIBLE);
@@ -249,7 +249,7 @@ public class AnimationController {
                         @Override
                         public void onAnimationEnd(Animator animation) {
                             super.onAnimationEnd(animation);
-                            Log.d(TAG, "DownAnimation end()");
+                            JSLog.d(TAG, "DownAnimation end()");
 
                             webViewContainer.setTranslationY(0);
 

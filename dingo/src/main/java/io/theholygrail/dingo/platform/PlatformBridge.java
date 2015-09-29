@@ -7,8 +7,8 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Handler;
+import android.support.annotation.NonNull;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
 import android.webkit.JavascriptInterface;
@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import io.theholygrail.dingo.JsonTransformer;
+import io.theholygrail.jsbridge.JSLog;
 import io.theholygrail.jsbridge.JSValue;
 import io.theholygrail.jsbridge.JSWebView;
 
@@ -36,11 +37,13 @@ public class PlatformBridge {
     private JSWebView mWebView;
     private Handler mHandler;
     private JsonTransformer mJsonTransformer;
+    private PlatformBridgeCallback mCallback;
 
-    public PlatformBridge(Context context, JSWebView webView, JsonTransformer transformer) {
+    public PlatformBridge(Context context, JSWebView webView, JsonTransformer transformer, @NonNull PlatformBridgeCallback callback) {
         mContext = context;
         mWebView = webView;
         mJsonTransformer = transformer;
+        mCallback = callback;
         mHandler = new Handler();
     }
 
@@ -52,7 +55,7 @@ public class PlatformBridge {
     @SuppressWarnings("unused")
     @JavascriptInterface
     public void info(String callback) {
-        Log.d(TAG, "info()");
+        JSLog.d(TAG, "info()");
 
         final JSValue callbackValue = new JSValue(callback);
         mHandler.post(new Runnable() {
@@ -64,7 +67,7 @@ public class PlatformBridge {
                 try {
                     appVersion = mContext.getPackageManager().getPackageInfo(mContext.getPackageName(), 0).versionName;
                 } catch (PackageManager.NameNotFoundException e) {
-                    Log.d(TAG, "Failed to get appversion: ", e);
+                    JSLog.d(TAG, "Failed to get appversion: ", e);
                 }
 
                 if (callbackValue.isFunction()) {
@@ -86,7 +89,7 @@ public class PlatformBridge {
     @SuppressWarnings("unused")
     @JavascriptInterface
     public void dialog(String param, String callback) {
-        Log.d(TAG, "dialog: " + param);
+        JSLog.d(TAG, "dialog: " + param);
 
         final DialogData dialogData = mJsonTransformer.fromJson(param, DialogData.class);
         final JSValue callbackValue = new JSValue(callback);
@@ -104,7 +107,7 @@ public class PlatformBridge {
                         builder.setNegativeButton(action.label, new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
-                                Log.d(TAG, "negative button clicked!");
+                                JSLog.d(TAG, "negative button clicked!");
                                 sendToJs("", action.id);
                             }
                         });
@@ -113,7 +116,7 @@ public class PlatformBridge {
                         DialogInterface.OnClickListener clickListener = new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
-                                Log.i(TAG, action.id + " button clicked!");
+                                JSLog.i(TAG, action.id + " button clicked!");
                                 sendToJs("", action.id);
                             }
                         };
@@ -130,26 +133,33 @@ public class PlatformBridge {
                 }
 
                 if (showDialog) {
-                    AlertDialog dialog = builder.create();
+                    final AlertDialog dialog = builder.create();
                     stackButtonsIfNeeded(dialog); // Lollipop layout bug workaround
                     dialog.setCanceledOnTouchOutside(false);
                     dialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
                         @Override
                         public void onCancel(DialogInterface dialog) {
-                            Log.d(TAG, "onCancel()");
+                            JSLog.d(TAG, "onCancel()");
                             sendToJs("", CANCELLED_ACTION_ID);
                         }
                     });
+                    dialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
+                        @Override
+                        public void onDismiss(DialogInterface d) {
+                            JSLog.d(TAG, "onDismiss()");
+                            mCallback.onDialogDismissed(dialog);
+                        }
+                    });
 
-                    dialog.show();
+                    mCallback.showDialog(dialog);
                 } else {
                     sendToJs("Could not create dialog", "");
-                    Log.w(TAG, "Could not create Dialog!");
+                    JSLog.w(TAG, "Could not create Dialog!");
                 }
             }
 
             private void sendToJs(String error, String id) {
-                Log.d(TAG, "error: " + error + " id: " + id);
+                JSLog.d(TAG, "error: " + error + " id: " + id);
                 if (callbackValue.isFunction()) {
                     Object args[] = { error, new JSValue(id) };
                     callbackValue.callFunction(mWebView, args, null);
